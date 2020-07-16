@@ -711,13 +711,16 @@ class LoadOaiSource():
 
 
 # Fixtures and Functions for load_test_data, which should prefereably not be used as it loads a lot of things
-def get_researcher_by_name(first, last):
-    n = Name.lookup_name((first, last))
-    return Researcher.objects.get(name=n)
+@pytest.fixture(scope="class")
+def get_researcher_by_name():
+    def func(first, last):
+        n = Name.lookup_name((first, last))
+        return Researcher.objects.get(name=n)
+    return func
 
 
 @pytest.fixture
-def load_test_data(request, db, django_db_setup, django_db_blocker):
+def load_test_data(request, db, django_db_setup, django_db_blocker, get_researcher_by_name):
     with django_db_blocker.unblock():
         call_command('loaddata', 'test_dump.json')
         self = request.cls
